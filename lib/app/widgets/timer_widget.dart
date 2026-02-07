@@ -19,9 +19,18 @@ class _TimerWidgetState extends State<TimerWidget> {
   Duration duration = Duration.zero;
 
   void startTimer() {
+    setState(() {
+      duration = Duration.zero;
+    });
+
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
-        duration += Duration(seconds: 1);
+        if (duration.inMinutes < widget.initialMinutes) {
+          duration += Duration(seconds: 1);
+        } else {
+          isRunning = false;
+          timer.cancel();
+        }
       });
     });
   }
@@ -29,6 +38,12 @@ class _TimerWidgetState extends State<TimerWidget> {
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -47,7 +62,7 @@ class _TimerWidgetState extends State<TimerWidget> {
         children: [
           // Timer
           Text(
-            "${duration.inMinutes}:${(duration.inSeconds % 60)}",
+            "${duration.inMinutes.toString().padLeft(2, '0')}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}",
             style: TextStyle(
               fontSize: 72,
               fontWeight: FontWeight.bold,
@@ -66,7 +81,11 @@ class _TimerWidgetState extends State<TimerWidget> {
                 setState(() {
                   isRunning = !isRunning;
                 });
-                startTimer();
+                if (isRunning) {
+                  startTimer();
+                } else {
+                  timer?.cancel();
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: isRunning ? Colors.red :AppConfig.buttonColor,
