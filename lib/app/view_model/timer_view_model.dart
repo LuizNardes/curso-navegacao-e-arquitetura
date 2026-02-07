@@ -3,16 +3,18 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class TimerViewModel extends ChangeNotifier {
-  bool isRunning = false;
+  bool isPlaying = false;
   Timer? timer;
   Duration duration = Duration.zero;
 
-  void startTimer(int initialMinutes) {
+  void startTimer(int initialMinutes, ValueNotifier<bool> isPausedNotifier) {
     duration = Duration.zero;
-    isRunning = true;
+    isPlaying = true;
     notifyListeners();
 
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (isPausedNotifier.value) return;
+
       if (duration.inMinutes < initialMinutes) {
         duration += Duration(seconds: 1);
         notifyListeners();
@@ -24,7 +26,7 @@ class TimerViewModel extends ChangeNotifier {
 
   void stopTimer() {
     timer?.cancel();
-    isRunning = false;
+    isPlaying = false;
     notifyListeners();
   }
 

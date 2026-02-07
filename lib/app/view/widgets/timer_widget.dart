@@ -15,8 +15,8 @@ class TimerWidget extends StatefulWidget {
 }
 
 class _TimerWidgetState extends State<TimerWidget> {
-
   final timerViewModel = TimerViewModel();
+  final isPausedNotifier = ValueNotifier<bool>(false);
 
   @override
   void initState() {
@@ -66,18 +66,18 @@ class _TimerWidgetState extends State<TimerWidget> {
             child: ListenableBuilder(
               listenable: timerViewModel,
               builder: (context, child) {
-                bool isRunning = timerViewModel.isRunning;
+                bool isPlaying = timerViewModel.isPlaying;
                 return ElevatedButton(
                   onPressed: () {
-                    if (isRunning) {
+                    if (isPlaying) {
                       timerViewModel.stopTimer();
-                      return;
                     } else {
-                      timerViewModel.startTimer(widget.initialMinutes);
+                      timerViewModel.startTimer(widget.initialMinutes, isPausedNotifier);
                     }
+                    isPausedNotifier.value = false;
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isRunning ? Colors.red : AppConfig.buttonColor,
+                    backgroundColor: isPlaying ? Colors.red : AppConfig.buttonColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 30,
@@ -90,10 +90,10 @@ class _TimerWidgetState extends State<TimerWidget> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(isRunning ? Icons.stop : Icons.play_arrow, color: AppConfig.backgroundColor),
+                      Icon(isPlaying ? Icons.stop : Icons.play_arrow, color: AppConfig.backgroundColor),
                       const SizedBox(width: 10),
                       Text(
-                        isRunning ? "Pausar" : "Iniciar",
+                        isPlaying ? "Parar" : "Iniciar",
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -106,6 +106,55 @@ class _TimerWidgetState extends State<TimerWidget> {
               }
             ),
           ),
+          SizedBox(height: 20),
+          ValueListenableBuilder(
+            valueListenable: isPausedNotifier, 
+            builder: (context, value, child) {
+              return ListenableBuilder(
+                listenable: timerViewModel, 
+                builder: (context, child) {
+                  if (!timerViewModel.isPlaying) return SizedBox.shrink();
+                  return SizedBox(
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        isPausedNotifier.value = !value;
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: value ? Colors.white : Colors.greenAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 15,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ), 
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            value ? Icons.play_circle : Icons.pause, 
+                            color: AppConfig.backgroundColor
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            value ? "Continuar" : "Pausar",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppConfig.backgroundColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+              );
+            }
+            ),
         ],
       ),
     );
